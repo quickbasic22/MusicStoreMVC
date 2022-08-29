@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MusicStoreMVC.Data;
 
@@ -11,9 +12,10 @@ using MusicStoreMVC.Data;
 namespace MusicStoreMVC.Migrations
 {
     [DbContext(typeof(MusicStoreMVCContext))]
-    partial class MusicStoreMVCContextModelSnapshot : ModelSnapshot
+    [Migration("20220829182834_RemovedVirtualFromModel")]
+    partial class RemovedVirtualFromModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

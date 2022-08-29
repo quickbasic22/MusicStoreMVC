@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
@@ -7,7 +8,8 @@ namespace MusicStoreMVC.Models
 {
     public class Artist
     {
-        public virtual int ArtistId { get; set; }
-        public virtual string Name { get; set; }
+        [Key]
+        public int ArtistId { get; set; }
+        public string Name { get; set; }
     }
 }

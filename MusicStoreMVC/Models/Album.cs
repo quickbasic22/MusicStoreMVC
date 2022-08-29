@@ -9,7 +9,8 @@ namespace MusicStoreMVC.Models
 {
     public class Album
     {
-        public virtual int AlbumId { get; set; }
+        [Key]
+        public int AlbumId { get; set; }
         public virtual int GenreId { get; set; }
         public virtual int ArtistId { get; set; }
         [Required]

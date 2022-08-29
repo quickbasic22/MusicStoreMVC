@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -21,21 +22,36 @@ namespace MusicStoreMVC.Controllers
         }
 
         // GET: AlbumArtistViewModels
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            List<Artist> artist = _context.Artist.ToList();
-            List<Album> albums = _context.Album.ToList();
-            List<Genre> genres = _context.Genre.ToList();
-            AlbumArtistViewModel[] vm = new AlbumArtistViewModel[albums.Count];
-            int itemNumber = 0;
-            foreach (Album album in albums)
+            var allAlbums = _context.Album.Include(a => a.Artist).ToList();
+            var allAlbumsGenre = _context.Album.Include(a => a.Genre).ToList();
+
+           
+            List<AlbumArtistViewModel> vm = new List<AlbumArtistViewModel>();
+            
+            
+            foreach (Album album in allAlbums)
             {
-                vm[itemNumber] = new AlbumArtistViewModel();
-                itemNumber++;
+                vm.Add(new AlbumArtistViewModel()
+                {
+                    ArtistId = album.Artist.ArtistId,
+                    GenreId = album.Genre.GenreId,
+                    Title = album.Title,
+                    Price = album.Price,
+                    AlbumArtUrl = album.AlbumArtUrl,
+                    ArtistName = album.Artist.Name,
+                    GenreName = album.Genre.Name,
+                    GenreDescription = album.Genre.Description
+
+                });
             }
-          
-              return _context.AlbumArtistViewModel != null ? 
-                          View(await _context.AlbumArtistViewModel.ToListAsync()) :
+            int cnt = 0;
+            
+                     
+            
+              return vm != null ? 
+                          View(vm) :
                           Problem("Entity set 'MusicStoreMVCContext.AlbumArtistViewModel'  is null.");
         }
 
