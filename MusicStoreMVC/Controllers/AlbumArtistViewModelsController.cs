@@ -58,12 +58,12 @@ namespace MusicStoreMVC.Controllers
         // GET: AlbumArtistViewModels/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.AlbumArtistViewModel == null)
+            if (id == null || _context.Album.Find(id) == null)
             {
                 return NotFound();
             }
 
-            var albumArtistViewModel = await _context.AlbumArtistViewModel
+            var albumArtistViewModel = await _context.Album
                 .FirstOrDefaultAsync(m => m.AlbumId == id);
             if (albumArtistViewModel == null)
             {
@@ -76,6 +76,9 @@ namespace MusicStoreMVC.Controllers
         // GET: AlbumArtistViewModels/Create
         public IActionResult Create()
         {
+            ViewData["Genre"] = new SelectList(_context.Genre, "GenreId", "Name");
+            ViewData["Artist"] = new SelectList(_context.Artist, "ArtistId", "Name");
+
             return View();
         }
 
@@ -86,9 +89,27 @@ namespace MusicStoreMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("AlbumId,GenreId,ArtistId,Title,Price,AlbumArtUrl,ArtistName,GenreName,GenreDescription")] AlbumArtistViewModel albumArtistViewModel)
         {
+            ViewData["Genre"] = new SelectList(_context.Genre, "GenreId", "Name");
+            ViewData["Artist"] = new SelectList(_context.Artist, "ArtistId", "Name");
+
             if (ModelState.IsValid)
             {
-                _context.Add(albumArtistViewModel);
+                var album = new Album();
+                var artist = new Artist();
+                var genre = new Genre();
+                album.AlbumId = albumArtistViewModel.AlbumId;
+                album.GenreId = albumArtistViewModel.GenreId;
+                album.ArtistId = albumArtistViewModel.ArtistId;
+                album.Title = albumArtistViewModel.Title;
+                album.Price = albumArtistViewModel.Price;
+                album.AlbumArtUrl = albumArtistViewModel.AlbumArtUrl;
+                album.Artist = artist;
+                album.Genre = genre;
+                artist.Name = albumArtistViewModel.ArtistName;
+                genre.Name = albumArtistViewModel.GenreName;
+                genre.Description = albumArtistViewModel.GenreDescription;
+
+                _context.AddRange(album, artist, genre);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -96,14 +117,15 @@ namespace MusicStoreMVC.Controllers
         }
 
         // GET: AlbumArtistViewModels/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
-            if (id == null || _context.AlbumArtistViewModel == null)
+            var album = _context.Album.Find(id);
+            if (id == null || album == null)
             {
                 return NotFound();
             }
 
-            var albumArtistViewModel = await _context.AlbumArtistViewModel.FindAsync(id);
+            var albumArtistViewModel = _context.Album.Find(id);
             if (albumArtistViewModel == null)
             {
                 return NotFound();
@@ -118,7 +140,7 @@ namespace MusicStoreMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("AlbumId,GenreId,ArtistId,Title,Price,AlbumArtUrl,ArtistName,GenreName,GenreDescription")] AlbumArtistViewModel albumArtistViewModel)
         {
-            if (id != albumArtistViewModel.AlbumId)
+            if (!_context.Album.Select(a => a.AlbumId == id).Any())
             {
                 return NotFound();
             }
@@ -127,6 +149,18 @@ namespace MusicStoreMVC.Controllers
             {
                 try
                 {
+                    var album = _context.Album.Include(artist => artist.Artist).Where(album => album.AlbumId == id).First();
+                    var genre = _context.Genre.Where(genre => genre.GenreId == album.GenreId);
+                    album.AlbumId = albumArtistViewModel.AlbumId;
+                    album.GenreId = albumArtistViewModel.GenreId;
+                    album.ArtistId = albumArtistViewModel.ArtistId;
+                    album.Title = albumArtistViewModel.Title;
+                    album.Price = albumArtistViewModel.Price;
+                    album.AlbumArtUrl = albumArtistViewModel.AlbumArtUrl;
+                    album.Artist.Name = albumArtistViewModel.ArtistName;
+                    album.Genre.Name = albumArtistViewModel.GenreName;
+                    album.Genre.Description = albumArtistViewModel.GenreDescription;
+
                     _context.Update(albumArtistViewModel);
                     await _context.SaveChangesAsync();
                 }
@@ -147,14 +181,14 @@ namespace MusicStoreMVC.Controllers
         }
 
         // GET: AlbumArtistViewModels/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
-            if (id == null || _context.AlbumArtistViewModel == null)
+            if (id == null || _context.Album.Include(a => a.Artist).Select(album => album.AlbumId == id) == null)
             {
                 return NotFound();
             }
 
-            var albumArtistViewModel = await _context.AlbumArtistViewModel
+            var albumArtistViewModel = _context.Album.Include(a => a.Artist)
                 .FirstOrDefaultAsync(m => m.AlbumId == id);
             if (albumArtistViewModel == null)
             {
@@ -167,25 +201,25 @@ namespace MusicStoreMVC.Controllers
         // POST: AlbumArtistViewModels/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            if (_context.AlbumArtistViewModel == null)
+            if (_context.Album.Include(a => a.Artist) == null)
             {
                 return Problem("Entity set 'MusicStoreMVCContext.AlbumArtistViewModel'  is null.");
             }
-            var albumArtistViewModel = await _context.AlbumArtistViewModel.FindAsync(id);
+            var albumArtistViewModel = _context.Album.Find(id);
             if (albumArtistViewModel != null)
             {
-                _context.AlbumArtistViewModel.Remove(albumArtistViewModel);
+                _context.Album.Remove(albumArtistViewModel);
             }
             
-            await _context.SaveChangesAsync();
+            _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool AlbumArtistViewModelExists(int id)
         {
-          return (_context.AlbumArtistViewModel?.Any(e => e.AlbumId == id)).GetValueOrDefault();
+            return (_context.Album.Any(album => album.AlbumId == id));
         }
     }
 }
