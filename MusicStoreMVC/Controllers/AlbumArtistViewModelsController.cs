@@ -76,8 +76,8 @@ namespace MusicStoreMVC.Controllers
         // GET: AlbumArtistViewModels/Create
         public IActionResult Create()
         {
-            ViewData["Genre"] = new SelectList(_context.Genre, "GenreId", "Name");
-            ViewData["Artist"] = new SelectList(_context.Artist, "ArtistId", "Name");
+            ViewData["Genre"] = new SelectList(_context.Genre.OrderBy(a => a.Name).ToList(), "GenreId", "Name");
+            ViewData["Artist"] = new SelectList(_context.Artist.OrderBy(a => a.Name).ToList(), "ArtistId", "Name");
 
             return View();
         }
@@ -89,8 +89,8 @@ namespace MusicStoreMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("AlbumId,GenreId,ArtistId,Title,Price,AlbumArtUrl,ArtistName,GenreName,GenreDescription")] AlbumArtistViewModel albumArtistViewModel)
         {
-            ViewData["Genre"] = new SelectList(_context.Genre, "GenreId", "Name");
-            ViewData["Artist"] = new SelectList(_context.Artist, "ArtistId", "Name");
+            ViewData["Genre"] = new SelectList(_context.Genre.OrderBy(a => a.Name).ToList(), "GenreId", "Name");
+            ViewData["Artist"] = new SelectList(_context.Artist.OrderBy(a => a.Name).ToList(), "ArtistId", "Name");
 
             if (ModelState.IsValid)
             {
